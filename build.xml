@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project name="TestNG" default="runTest" basedir=".">
+
+	<!-- ========== Initialize Properties =================================== -->
+	<property environment="env" />
+	<property name="home.dir" value="${basedir}" />
+	<property name="jar.dir" value="${basedir}/Lib" />
+	<property name="autotestlib.dir" value="${basedir}/Autotest-libs" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="testNG.dir" value="${basedir}/test-output" />
+
+
+
+	<tstamp>
+		<format property="run.time" pattern="dd_MMM_yyyy_hh_mm_aa" />
+	</tstamp>
+
+	<!-- set classpath -->
+	<path id="classpath">
+		<fileset dir="${src.dir}" />
+		<fileset dir="${jar.dir}" />
+		<fileset dir="${autotestlib.dir}" />
+		<fileset dir="${bin.dir}" />
+
+	</path>
+
+
+
+	<!-- clean -->
+	<target name="clean" description="Clean all build targets">
+		<delete dir="${bin.dir}" />
+	</target>
+
+	<!-- init -->
+	<target name="init">
+		<mkdir dir="${bin.dir}" />
+	</target>
+
+	<!-- compile -->
+
+	<target name="compile" depends="clean,init" description="Compile program">
+
+		<javac srcdir="${src.dir}" destdir="${bin.dir}" debug="true" source="1.7" target="1.7" includeantruntime="false">
+			<classpath refid="classpath" />
+		</javac>
+
+	</target>
+
+
+
+	<!-- runtest -->
+
+
+
+
+	<taskdef name="testng" classname="org.testng.TestNGAntTask">
+		<classpath>
+
+			<pathelement location="${jar.dir}/testng-6.8.jar" />
+
+		</classpath>
+	</taskdef>
+
+
+
+	<target name="Testng" depends="compile">
+
+		<mkdir dir="${basedir}/test-output" />
+		<testng outputdir="${testNG.dir}" classpathref="classpath">
+
+			<classpath>
+				<pathelement location="${bin.dir}" />
+			</classpath>
+
+			<xmlfileset dir="${home.dir}/Config" includes="Testng.xml" />
+			<!-- To avoid html tag chnge eg. < ~ &lt;   by hari-->
+			<sysproperty key="org.uncommons.reportng.escape-output" value="false"/>
+		</testng>
+	</target>
+
+
+
+	<!-- make XSLT report -->
+
+
+	<target name="runTest" depends = "Testng">
+		<mkdir dir="${home.dir}/XSLT_Reports/${run.time}" />
+
+		<xslt in="${testNG.dir}/testng-results.xml" style="src/testng-results.xsl" out="${home.dir}/XSLT_Reports/${run.time}/index.html" classpathref="classpath" processor="SaxonLiaison">
+			<param name="testNgXslt.outputDir" expression="${home.dir}/XSLT_Reports/${run.time}/" />
+			<param name="testNgXslt.showRuntimeTotals" expression="true" />
+		</xslt>
+	</target>
+
+	<!-- ****************** targets not used ****************** -->
+</project>
